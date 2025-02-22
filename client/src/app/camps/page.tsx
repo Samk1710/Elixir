@@ -11,7 +11,7 @@ import { useReadContract } from 'wagmi'
 import { abi, contract_address } from '@/app/abis/bloodCamp'
 import { useState, useEffect, useCallback } from "react"
 
-const Map = dynamic(() => import("@/components/map"), { ssr: false })
+const Map = dynamic(() => import("@/components/utils/map"), { ssr: false })
 
 export default function CampsPage() {
   interface BloodType {
