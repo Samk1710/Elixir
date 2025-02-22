@@ -35,28 +35,13 @@ export default function CreateCampPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (id > 0 && name && organizer && city) {
+    if (id > 0 && name && organizer && city && latitude !== null && longitude !== null) {
       writeContract({
         address: contract_address,
         abi,
         functionName: "createCamp",
-        args: [id, name, organizer, city],
+        args: [id, name, organizer, city, latitude.toString(), longitude.toString()], // Pass latitude and longitude as strings
       })
-    }
-    if (latitude !== null && longitude !== null) {
-      try {
-        const data = await axios.post("/api/location", {
-          id,
-          name,
-          location: {
-            latitude,
-            longitude,
-          },
-        })
-        console.log(data)
-      } catch (error) {
-        console.error("Error saving location:", error)
-      }
     }
   }
 
@@ -142,7 +127,7 @@ export default function CreateCampPage() {
 
                 <motion.div variants={fadeIn}>
                   <div className="flex items-center space-x-2 mb-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
+                    <User  className="h-4 w-4 text-muted-foreground" />
                     <Label htmlFor="organizer">Organizer</Label>
                   </div>
                   <Input
@@ -257,4 +242,3 @@ export default function CreateCampPage() {
     </div>
   )
 }
-
