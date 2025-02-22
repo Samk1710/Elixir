@@ -1,4 +1,4 @@
-export const contract_address= '0xAF514448B349AB2a21F9A27D3f9C448Ceedd067f'
+export const contract_address= '0xdCf97Db48b9220F89eCED4336F39F3b9e58805C7'
 
 export const abi = [
     {
@@ -97,6 +97,16 @@ export const abi = [
                 "name": "_city",
                 "type": "string",
                 "internalType": "string"
+            },
+            {
+                "name": "_lat",
+                "type": "string",
+                "internalType": "string"
+            },
+            {
+                "name": "_long",
+                "type": "string",
+                "internalType": "string"
             }
         ],
         "outputs": [],
@@ -136,6 +146,16 @@ export const abi = [
                         "name": "owner",
                         "type": "address",
                         "internalType": "address"
+                    },
+                    {
+                        "name": "lat",
+                        "type": "string",
+                        "internalType": "string"
+                    },
+                    {
+                        "name": "long",
+                        "type": "string",
+                        "internalType": "string"
                     }
                 ]
             }
@@ -182,6 +202,16 @@ export const abi = [
                         "name": "owner",
                         "type": "address",
                         "internalType": "address"
+                    },
+                    {
+                        "name": "lat",
+                        "type": "string",
+                        "internalType": "string"
+                    },
+                    {
+                        "name": "long",
+                        "type": "string",
+                        "internalType": "string"
                     }
                 ]
             }
@@ -428,4 +458,3 @@ export const abi = [
         "anonymous": false
     }
 ]
-

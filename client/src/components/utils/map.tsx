@@ -1,24 +1,26 @@
+"use client"
 import { useEffect, useState } from "react"
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
+import { useGeolocation } from "../hooks/useGeolocation"
+// interface Location {
+//   latitude: number
+//   longitude: number
+// }
 
-interface Location {
-  latitude: number
-  longitude: number
-}
+// interface MapLocation {
+//   latitude: number
+//   longitude: number
+//   name?: string
+// }
 
-interface MapLocation {
-  latitude: number
-  longitude: number
-  name?: string
-}
-
-interface MapProps {
-  nearbyCamps?: MapLocation[]
-}
+// interface MapProps {
+//   nearbyCamps?: MapLocation[]
+// }
 
 // Custom marker icons
+
 const userIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/484/484185.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
@@ -37,34 +39,12 @@ const locationIcon = new L.Icon({
   shadowSize: [41, 41],
 })
 
-export default function Map({ nearbyCamps = [] }: MapProps) {
-  const [userLocation, setUserLocation] = useState<Location | null>(null)
-  const [error, setError] = useState<string>("")
-  const [loading, setLoading] = useState(true)
+export default function Map({ camps = [] }) {
+  const { location, isLoading, isError, error } = useGeolocation();
+  
+ 
 
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser")
-      setLoading(false)
-      return
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        })
-        setLoading(false)
-      },
-      () => {
-        setError("Unable to retrieve your location")
-        setLoading(false)
-      },
-    )
-  }, [])
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center bg-muted">
         <div className="text-lg">Loading map...</div>
@@ -80,15 +60,12 @@ export default function Map({ nearbyCamps = [] }: MapProps) {
     )
   }
 
-  if (!userLocation) return null
-
-  // Filter out any camps with invalid coordinates
   
 
   return (
     <div className="h-full w-full rounded-lg overflow-hidden">
       <MapContainer
-        center={[userLocation.latitude, userLocation.longitude]}
+        center={[location?.latitude, location?.longitude]}
         zoom={12.9}
         maxZoom={24}
         minZoom={4}
@@ -101,23 +78,23 @@ export default function Map({ nearbyCamps = [] }: MapProps) {
         />
 
         {/* User location marker */}
-        <Marker position={[userLocation.latitude, userLocation.longitude]} icon={userIcon}>
+        <Marker position={[location?.latitude, location?.longitude]} icon={userIcon}>
           <Popup>
             <div className="font-semibold">Your Location</div>
           </Popup>
         </Marker>
 
         {/* Other location markers */}
-        {nearbyCamps.map((location, index) => (
+        {camps.map((location, index) => (
           <Marker
-            key={`${location.location?.latitude}-${location.location?.longitude}-${index}`}
-            position={[location?.location?.latitude, location?.location?.longitude]}
+            key={`${location?.lat}-${location.location?.longitude}-${index}`}
+            position={[location?.lat, location?.long]}
             icon={locationIcon}
           >
             <Popup>
               <div>
                 {location.name ? (
-                  <div className="font-semibold mb-1">{location.name}</div>
+                  <div className="font-semibold mb-1">{location?.name}</div>
                 ) : (
                   <div>Location {index + 1}</div>
                 )}

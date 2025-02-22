@@ -7,9 +7,8 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { MapPin } from "lucide-react"
 import dynamic from "next/dynamic"
-import { useReadContract } from 'wagmi'
+import { useReadContract } from 'wagmi' // Updated import
 import { abi, contract_address } from '@/app/abis/bloodCamp'
-import { useState, useEffect, useCallback } from "react"
 
 const Map = dynamic(() => import("@/components/utils/map"), { ssr: false })
 
@@ -33,89 +32,23 @@ export default function CampsPage() {
     owner: string;
   }
 
-  const [coordinates, setCoordinates] = useState<{ lat: number | null; lng: number | null }>({
-    lat: null,
-    lng: null
-  })
-  const [isLocating, setIsLocating] = useState(false)
-  const [locationError, setLocationError] = useState<string | null>(null)
-  const [nearbyCamps, setNearbyCamps] = useState([])
-  const [isLoadingCamps, setIsLoadingCamps] = useState(false)
+ 
 
-  const getLocation = useCallback(() => {
-    setIsLocating(true)
-    setLocationError(null)
-    
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCoordinates({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          })
-          setIsLocating(false)
-        },
-        (error) => {
-          console.error("Error getting location: ", error)
-          setLocationError("Failed to get your location. Please try again.")
-          setIsLocating(false)
-        }
-      )
-    } else {
-      setLocationError("Geolocation is not supported by your browser.")
-      setIsLocating(false)
-    }
-  }, [])
-
-  const getNearbyCamps = useCallback(async (lat: number, lng: number, range: number) => {
-    setIsLoadingCamps(true)
-    try {
-      const response = await fetch(`/api/location?lat=${lat}&lng=${lng}&range=${range}`)
-      const data = await response.json()
-      
-      if (data?.data?.locations) {
-        // Ensure we're getting the expected data structure
-        console.log("Fetched locations:", data.data.locations)
-        setNearbyCamps(data.data.locations)
-        
-      } else {
-        console.error("Invalid data structure received:", data)
-        setNearbyCamps([])
-      }
-    } catch (error) {
-      console.error("Error fetching nearby camps:", error)
-      setNearbyCamps([])
-    } finally {
-      setIsLoadingCamps(false)
-    }
-  }, [])
-
-  const { data: camps, isError, isLoading } = useReadContract({
+  // Updated contract read hook
+  const { data: camps, isError, isLoading, status } = useReadContract({
     address: contract_address,
     abi,
     functionName: 'getAllCamps',
+    // Optional parameters if needed:
+    // args: [],
+    // chainId: 84532, // Base Sepolia
   })
-const allowedNum=[111,786,123]
-  // Get initial location
-  useEffect(() => {
-    getLocation()
-    
-  }, [getLocation])
 
-  // Fetch nearby camps when coordinates change
-  useEffect(() => {
-    if (coordinates.lat && coordinates.lng) {
-      getNearbyCamps(coordinates.lat, coordinates.lng, 1000)
-      
-    }
-  }, [coordinates, getNearbyCamps])
-  
   return (
     <div className="container py-10">
       <div className="grid gap-6 md:grid-cols-[300px_1fr]">
         {/* Filters */}
         <div className="space-y-6">
-          {/* ... Filters section remains the same ... */}
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">Blood Type</h2>
             <Select>
@@ -162,61 +95,37 @@ const allowedNum=[111,786,123]
             </div>
           </div>
 
-          <Button 
-            className="w-full"
-            onClick={() => coordinates.lat && coordinates.lng && getNearbyCamps(coordinates.lat, coordinates.lng, 1000)}
-          >
-            Refresh Nearby Camps
-          </Button>
+          <Button className="w-full">Apply Filters</Button>
         </div>
 
         {/* Map and Camps List */}
         <div className="space-y-6">
           {/* Map */}
           <div className="aspect-video rounded-lg border bg-muted">
-            {isLocating ? (
-              <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                Loading map...
-              </div>
-            ) : locationError ? (
-              <div className="h-full w-full flex items-center justify-center text-red-500">
-                {locationError}
-              </div>
-            ) : coordinates.lat && coordinates.lng ? (
-              <Map nearbyCamps={nearbyCamps} />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                Unable to load map
-              </div>
-            )}
+            <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+              <Map camps={camps}/>
+            </div>
           </div>
 
           {/* Camps List */}
           <div className="grid gap-4">
-            {isLoadingCamps ? (
-              <div>Loading nearby camps...</div>
-            ) : nearbyCamps.length > 0 ? (
-              
-              camps?.map((camp: any, index: number) => (
-              
-                <div key={index} className="flex items-center justify-between p-4 rounded-lg border">
-                  <div className="flex items-start space-x-4">
-                    <MapPin className="h-6 w-6 text-primary mt-1" />
-                    <div>
-                      <p>{camp.id}</p>
-                      <h3 className="font-semibold">{camp.name}</h3>
-                      <p className="text-sm text-muted-foreground">{camp.city || 'Location not specified'}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {camp.organizer ? `Organized by: ${camp.organizer}` : 'Organizer not specified'}
-                      </p>
-                    </div>
+            {isLoading && <div>Loading camps...</div>}
+            {isError && <div>Error loading camps</div>}
+            {camps?.map((camp) => (
+              <div key={camp.id} className="flex items-center justify-between p-4 rounded-lg border">
+                <div className="flex items-start space-x-4">
+                  <MapPin className="h-6 w-6 text-primary mt-1" />
+                  <div>
+                    <h3 className="font-semibold">{camp.name}</h3>
+                    <p className="text-sm text-muted-foreground">{camp.city}</p>
+                    <p className="text-sm text-muted-foreground">Organized by: {camp.organizer}</p>
+                    <p>{camp.lat}</p>
+                    <p>{camp.long}</p>
                   </div>
-                  <Button>Book Slot</Button>
                 </div>
-              ))
-            ) : (
-              <div>No nearby camps found</div>
-            )}
+                <Button>Book Slot</Button>
+              </div>
+            ))}
           </div>
         </div>
       </div>

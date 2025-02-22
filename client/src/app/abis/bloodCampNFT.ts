@@ -1,4 +1,4 @@
-export const contract_address = '0x5CC218a3C34E399404ad818aC166717FbF62E47f'
+export const contract_address = '0xa8c22c993F5BC6625FA1A96fC23D92855F4E2F1c'
 
 export const abi = [
     {
@@ -45,6 +45,32 @@ export const abi = [
     },
     {
         "type": "function",
+        "name": "bloodCampNFT",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "contract BloodCampNFT"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "createUser",
+        "inputs": [
+            {
+                "name": "_name",
+                "type": "string",
+                "internalType": "string"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "getApproved",
         "inputs": [
             {
@@ -54,6 +80,49 @@ export const abi = [
             }
         ],
         "outputs": [
+            {
+                "name": "",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getOwnedNFTs",
+        "inputs": [
+            {
+                "name": "_user",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256[]",
+                "internalType": "uint256[]"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
+        "name": "getUser",
+        "inputs": [
+            {
+                "name": "_user",
+                "type": "address",
+                "internalType": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "string",
+                "internalType": "string"
+            },
             {
                 "name": "",
                 "type": "address",
@@ -431,6 +500,25 @@ export const abi = [
         "anonymous": false
     },
     {
+        "type": "event",
+        "name": "UserCreated",
+        "inputs": [
+            {
+                "name": "user",
+                "type": "address",
+                "indexed": true,
+                "internalType": "address"
+            },
+            {
+                "name": "name",
+                "type": "string",
+                "indexed": false,
+                "internalType": "string"
+            }
+        ],
+        "anonymous": false
+    },
+    {
         "type": "error",
         "name": "ERC721IncorrectOwner",
         "inputs": [
@@ -556,4 +644,3 @@ export const abi = [
         ]
     }
 ]
-
