@@ -3,7 +3,7 @@ import { Inter, Rubik } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Navbar } from "@/components/navbar"
-import { ChatBot } from "@/components/chat-bot"
+import { ChatBot } from "@/components/utils/chat-bot"
 import { Providers } from "@/components/providers"
 import '@rainbow-me/rainbowkit/styles.css'
 
