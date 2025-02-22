@@ -1,0 +1,225 @@
+"use client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Switch } from "@/components/ui/switch"
+import { MapPin } from "lucide-react"
+import dynamic from "next/dynamic"
+import { useReadContract } from 'wagmi'
+import { abi, contract_address } from '@/app/abis/bloodCamp'
+import { useState, useEffect, useCallback } from "react"
+
+const Map = dynamic(() => import("@/components/map"), { ssr: false })
+
+export default function CampsPage() {
+  interface BloodType {
+    O_POS: "O_POS",
+    O_NEG: "O_NEG",
+    A_POS: "A_POS",
+    A_NEG: "A_NEG",
+    B_POS: "B_POS",
+    B_NEG: "B_NEG",
+    AB_POS: "AB_POS",
+    AB_NEG: "AB_NEG",
+  }
+
+  interface Camp {
+    id: number;
+    name: string;
+    organizer: string;
+    city: string;
+    owner: string;
+  }
+
+  const [coordinates, setCoordinates] = useState<{ lat: number | null; lng: number | null }>({
+    lat: null,
+    lng: null
+  })
+  const [isLocating, setIsLocating] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
+  const [nearbyCamps, setNearbyCamps] = useState([])
+  const [isLoadingCamps, setIsLoadingCamps] = useState(false)
+
+  const getLocation = useCallback(() => {
+    setIsLocating(true)
+    setLocationError(null)
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoordinates({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          })
+          setIsLocating(false)
+        },
+        (error) => {
+          console.error("Error getting location: ", error)
+          setLocationError("Failed to get your location. Please try again.")
+          setIsLocating(false)
+        }
+      )
+    } else {
+      setLocationError("Geolocation is not supported by your browser.")
+      setIsLocating(false)
+    }
+  }, [])
+
+  const getNearbyCamps = useCallback(async (lat: number, lng: number, range: number) => {
+    setIsLoadingCamps(true)
+    try {
+      const response = await fetch(`/api/location?lat=${lat}&lng=${lng}&range=${range}`)
+      const data = await response.json()
+      
+      if (data?.data?.locations) {
+        // Ensure we're getting the expected data structure
+        console.log("Fetched locations:", data.data.locations)
+        setNearbyCamps(data.data.locations)
+        
+      } else {
+        console.error("Invalid data structure received:", data)
+        setNearbyCamps([])
+      }
+    } catch (error) {
+      console.error("Error fetching nearby camps:", error)
+      setNearbyCamps([])
+    } finally {
+      setIsLoadingCamps(false)
+    }
+  }, [])
+
+  const { data: camps, isError, isLoading } = useReadContract({
+    address: contract_address,
+    abi,
+    functionName: 'getAllCamps',
+  })
+const allowedNum=[111,786,123]
+  // Get initial location
+  useEffect(() => {
+    getLocation()
+    
+  }, [getLocation])
+
+  // Fetch nearby camps when coordinates change
+  useEffect(() => {
+    if (coordinates.lat && coordinates.lng) {
+      getNearbyCamps(coordinates.lat, coordinates.lng, 1000)
+      
+    }
+  }, [coordinates, getNearbyCamps])
+  
+  return (
+    <div className="container py-10">
+      <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+        {/* Filters */}
+        <div className="space-y-6">
+          {/* ... Filters section remains the same ... */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Blood Type</h2>
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select blood type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="a_pos">A+</SelectItem>
+                <SelectItem value="a_neg">A-</SelectItem>
+                <SelectItem value="b_pos">B+</SelectItem>
+                <SelectItem value="b_neg">B-</SelectItem>
+                <SelectItem value="o_pos">O+</SelectItem>
+                <SelectItem value="o_neg">O-</SelectItem>
+                <SelectItem value="ab_pos">AB+</SelectItem>
+                <SelectItem value="ab_neg">AB-</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Age Range</h2>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <Label>Minimum Age: 18</Label>
+                <Slider defaultValue={[18]} max={100} min={18} step={1} />
+              </div>
+              <div className="space-y-1">
+                <Label>Maximum Age: 65</Label>
+                <Slider defaultValue={[65]} max={100} min={18} step={1} />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Distance</h2>
+            <Input type="number" placeholder="Distance in km" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Optimize Route</h2>
+            <div className="flex items-center space-x-2">
+              <Switch id="optimize" />
+              <Label htmlFor="optimize">Enable route optimization</Label>
+            </div>
+          </div>
+
+          <Button 
+            className="w-full"
+            onClick={() => coordinates.lat && coordinates.lng && getNearbyCamps(coordinates.lat, coordinates.lng, 1000)}
+          >
+            Refresh Nearby Camps
+          </Button>
+        </div>
+
+        {/* Map and Camps List */}
+        <div className="space-y-6">
+          {/* Map */}
+          <div className="aspect-video rounded-lg border bg-muted">
+            {isLocating ? (
+              <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                Loading map...
+              </div>
+            ) : locationError ? (
+              <div className="h-full w-full flex items-center justify-center text-red-500">
+                {locationError}
+              </div>
+            ) : coordinates.lat && coordinates.lng ? (
+              <Map nearbyCamps={nearbyCamps} />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                Unable to load map
+              </div>
+            )}
+          </div>
+
+          {/* Camps List */}
+          <div className="grid gap-4">
+            {isLoadingCamps ? (
+              <div>Loading nearby camps...</div>
+            ) : nearbyCamps.length > 0 ? (
+              
+              camps?.map((camp: any, index: number) => (
+              
+                <div key={index} className="flex items-center justify-between p-4 rounded-lg border">
+                  <div className="flex items-start space-x-4">
+                    <MapPin className="h-6 w-6 text-primary mt-1" />
+                    <div>
+                      <p>{camp.id}</p>
+                      <h3 className="font-semibold">{camp.name}</h3>
+                      <p className="text-sm text-muted-foreground">{camp.city || 'Location not specified'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {camp.organizer ? `Organized by: ${camp.organizer}` : 'Organizer not specified'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button>Book Slot</Button>
+                </div>
+              ))
+            ) : (
+              <div>No nearby camps found</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
