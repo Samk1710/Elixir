@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import { Inter, Rubik } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Navbar } from "@/components/navbar"
+import { Navbar } from "@/components/utils/navbar"
 import { ChatBot } from "@/components/utils/chat-bot"
-import { Providers } from "@/components/providers"
+import { Providers } from "@/components/utils/providers"
 import '@rainbow-me/rainbowkit/styles.css'
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
