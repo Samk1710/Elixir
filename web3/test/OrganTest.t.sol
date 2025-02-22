@@ -1,208 +1,341 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import "../src/organ/Organ.sol";
+import "../src/organ/OrganDonation.sol";
 
-contract OrganTest is Test {
-    Organ organ;
-    address owner;
-    address donor;
-    address hospital;
-    address nextOfKin;
+contract OrganDonationTest is Test {
+    OrganDonation public organDonation;
+    OrganDonationNFT public nft;
+    
+    address public owner;
+    address public hospital;
+    address public donor;
+    address public recipient;
+    address public nextOfKin;
+    address public unauthorized;
+
+    string[] organs;
 
     function setUp() public {
-        // Deploy the contract
-        organ = new Organ();
+        // Deploy contract
+        organDonation = new OrganDonation();
+        nft = OrganDonationNFT(organDonation.organDonationNFT());
+        
+        // Setup test addresses
+        owner = address(this);
+        hospital = makeAddr("hospital");
+        donor = makeAddr("donor");
+        recipient = makeAddr("recipient");
+        nextOfKin = makeAddr("nextOfKin");
+        unauthorized = makeAddr("unauthorized");
 
-        // Initialize addresses
-        owner = address(this); // Test contract is the owner
-        donor = address(0x1);
-        hospital = address(0x2);
-        nextOfKin = address(0x3);
+        // Setup test organs array
+        organs.push("kidney");
+        organs.push("liver");
+
+        // Fund addresses
+        vm.deal(hospital, 100 ether);
+        vm.deal(donor, 100 ether);
+        vm.deal(nextOfKin, 100 ether);
     }
 
-    function testDonorRegistration() public {
-        // Register a donor
-        string[] memory organsList = new string[](2);
-        organsList[0] = "Heart";
-        organsList[1] = "Liver";
-        string memory ipfsHash = "QmExampleHash";
+    modifier hospitalRegistered() {
+        vm.prank(hospital);
+        organDonation.registerHospital(1, "City Hospital", "New York");
 
-        vm.prank(donor);
-        organ.registerAsDonor(organsList, nextOfKin, ipfsHash);
-
-        // Check donor details
-        string[] memory donorOrgans = organ.getDonorOrgans(donor);
-        assertEq(donorOrgans.length, 2);
-        assertEq(donorOrgans[0], "Heart");
-        assertEq(donorOrgans[1], "Liver");
-
-        // Check NFT minting
-        uint256 tokenId = 0;
-        assertEq(organ.ownerOf(tokenId), donor);
+        OrganDonation.Hospital memory hospitalData = organDonation.getHospital(1);
+        _;
     }
 
-    function testDonorRegistrationFailInvalidNextOfKin() public {
-        // Attempt to register with zero address as next of kin
-        string[] memory organsList = new string[](2);
-        organsList[0] = "Heart";
-        organsList[1] = "Liver";
-        string memory ipfsHash = "QmExampleHash";
+    // Hospital Registration Tests
+    function testHospitalRegistration() public {
+        // vm.prank(hospital);
+        // organDonation.registerHospital(1, "City Hospital", "New York");
 
-        vm.prank(donor);
-        vm.expectRevert("Invalid next of kin address");
-        organ.registerAsDonor(organsList, address(0), ipfsHash);
+        OrganDonation.Hospital memory hospitalData = organDonation.getHospital(1);
+
+        assertEq(hospitalData.id, 1);
+        assertEq(hospitalData.name, "City Hospital");
+        assertEq(hospitalData.city, "New York");
+        assertEq(hospitalData.owner, hospital);
+        // assertEq(hospitalData.isVerified, false);
+        assertEq(hospitalData.matchingsCompleted, 0);
     }
 
-    function testDonorRegistrationFailEmptyOrgansList() public {
-        // Attempt to register with an empty organs list
-        string[] memory organsList = new string[](0);
-        string memory ipfsHash = "QmExampleHash";
 
-        vm.prank(donor);
-        vm.expectRevert("At least one organ must be specified");
-        organ.registerAsDonor(organsList, nextOfKin, ipfsHash);
+    function testFailDuplicateHospitalId() public {
+        vm.startPrank(hospital);
+        organDonation.registerHospital(1, "City Hospital", "New York");
+        organDonation.registerHospital(1, "Another Hospital", "Boston");
+        vm.stopPrank();
     }
 
-    // function testNextOfKinApproval() public {
-    //     // Register a donor
-    //     string[] memory organsList = new string[](2);
-    //     organsList[0] = "Heart";
-    //     organsList[1] = "Liver";
-    //     string memory ipfsHash = "QmExampleHash";
-
-    //     vm.prank(donor);
-    //     organ.registerAsDonor(organsList, nextOfKin, ipfsHash);
-
-    //     // Approve as next of kin
-    //     vm.prank(nextOfKin);
-    //     organ.approveAsDonor(donor);
-
-    //     // Check approval status
-    //     (,,,, bool nextOfKinApproval,) = organ.donors(donor);
-    //     assertTrue(nextOfKinApproval);
+    // Hospital Verification Tests
+    // function testHospitalVerification() public hospitalRegistered{
+    //     OrganDonation.Hospital memory hospitalData = organDonation.getHospital(1);
+    //     organDonation.verifyHospital(1);
+        
+    //     // (, , , , bool isVerified, ) = organDonation.getHospital(1);
+    //     assertTrue(hospitalData.isVerified);
     // }
 
-    function testNextOfKinApprovalFailUnauthorized() public {
-        // Register a donor
-        string[] memory organsList = new string[](2);
-        organsList[0] = "Heart";
-        organsList[1] = "Liver";
-        string memory ipfsHash = "QmExampleHash";
+    // function testFailUnauthorizedHospitalVerification() public {
+    //     vm.prank(hospital);
+    //     organDonation.registerHospital(1, "City Hospital", "New York");
+        
+    //     vm.prank(unauthorized);
+    //     vm.expectRevert();
+    //     organDonation.verifyHospital(1);
+    // }
 
+    // Donor Registration Tests
+    function testDonorRegistration() public {
         vm.prank(donor);
-        organ.registerAsDonor(organsList, nextOfKin, ipfsHash);
+        organDonation.registerDonor(organs, nextOfKin, "ipfs_hash");
 
-        // Attempt to approve as a non-next of kin
-        vm.prank(hospital);
-        vm.expectRevert("Not authorized next of kin");
-        organ.approveAsDonor(donor);
+        (
+            string[] memory registeredOrgans,
+            address registeredNextOfKin,
+            bool isActive,
+            bool nextOfKinApproval,
+            string memory ipfsHash
+        ) = organDonation.getDonor(donor);
+
+        assertEq(registeredOrgans.length, organs.length);
+        assertEq(registeredOrgans[0], organs[0]);
+        assertEq(registeredOrgans[1], organs[1]);
+        assertEq(registeredNextOfKin, nextOfKin);
+        assertTrue(isActive);
+        assertFalse(nextOfKinApproval);
+        assertEq(ipfsHash, "ipfs_hash");
     }
 
-    function testHospitalVerification() public {
-        // Verify the hospital
-        organ.verifyHospital(hospital);
+    function testDonorNFTMinting() public {
+        vm.prank(donor);
+        organDonation.registerDonor(organs, nextOfKin, "ipfs_hash");
 
-        // Check hospital verification status
-        (bool isVerified,,) = organ.hospitals(hospital);
-        assertTrue(isVerified);
+        assertEq(nft.balanceOf(donor), 1);
     }
 
-    function testHospitalVerificationFailNonOwner() public {
-        // Attempt to verify a hospital as a non-owner
+    function testFailInvalidNextOfKin() public {
         vm.prank(donor);
-        vm.expectRevert("Ownable: caller is not the owner");
-        organ.verifyHospital(hospital);
+        organDonation.registerDonor(organs, address(0), "ipfs_hash");
     }
 
-    function testOrganRequestAndMatching() public {
-        // Register a donor and approve them
-        string[] memory organsList = new string[](2);
-        organsList[0] = "Heart";
-        organsList[1] = "Liver";
-        string memory ipfsHash = "QmExampleHash";
-
+    // Next of Kin Approval Tests
+    function testNextOfKinApproval() public {
         vm.prank(donor);
-        organ.registerAsDonor(organsList, nextOfKin, ipfsHash);
+        organDonation.registerDonor(organs, nextOfKin, "ipfs_hash");
 
         vm.prank(nextOfKin);
-        organ.approveAsDonor(donor);
+        organDonation.approveAsDonor(donor);
 
-        // Verify the hospital
-        organ.verifyHospital(hospital);
-
-        // Create an organ request
-        vm.prank(hospital);
-        organ.createOrganRequest(donor, "Heart", "O+", Organ.UrgencyLevel.Critical);
-
-        // Match the organ
-        vm.prank(hospital);
-        organ.matchOrgan(0, donor);
-
-        // Check request status
-        (,,,, bool isActive, address matchedDonor,) = organ.getOrganRequest(0);
-        assertFalse(isActive);
-        assertEq(matchedDonor, donor);
-
-        // Check donor's organ status
-        bool isOrganAvailable = organ.isOrganAvailable(donor, "Heart");
-        assertFalse(isOrganAvailable);
+        (, , , bool approval, ) = organDonation.getDonor(donor);
+        assertTrue(approval);
     }
 
-    function testOrganRequestFailUnauthorizedHospital() public {
-        // Attempt to create an organ request as an unverified hospital
-        vm.prank(hospital);
-        vm.expectRevert("Not a verified hospital");
-        organ.createOrganRequest(donor, "Heart", "O+", Organ.UrgencyLevel.Critical);
-    }
-
-    function testOrganMatchingFailUnauthorizedHospital() public {
-        // Register a donor and approve them
-        string[] memory organsList = new string[](2);
-        organsList[0] = "Heart";
-        organsList[1] = "Liver";
-        string memory ipfsHash = "QmExampleHash";
-
+    function testFailUnauthorizedNextOfKinApproval() public {
         vm.prank(donor);
-        organ.registerAsDonor(organsList, nextOfKin, ipfsHash);
+        organDonation.registerDonor(organs, nextOfKin, "ipfs_hash");
 
+        vm.prank(unauthorized);
+        vm.expectRevert();
+        organDonation.approveAsDonor(donor);
+    }
+
+    // Organ Request Tests
+    function testCreateOrganRequest() public {
+        // Setup verified hospital
+        vm.prank(hospital);
+        organDonation.registerHospital(1, "City Hospital", "New York");
+        // organDonation.verifyHospital(1);
+
+        // Create request
+        vm.prank(hospital);
+        organDonation.createOrganRequest(
+            1,              // hospitalId
+            1,              // requestId
+            "kidney",       // organType
+            "A+",          // bloodType
+            3,             // urgencyLevel
+            recipient      // recipient
+        );
+
+        OrganDonation.OrganRequest memory request = organDonation.getOrganRequest(1);
+        assertEq(request.id, 1);
+        assertEq(request.organType, "kidney");
+        assertEq(request.bloodType, "A+");
+        assertEq(request.urgencyLevel, 3);
+        assertEq(request.recipient, recipient);
+        assertTrue(request.isActive);
+        assertEq(request.matchedDonor, address(0));
+        assertEq(request.hospitalId, 1);
+    }
+
+    function testFailCreateRequestUnverifiedHospital() public {
+        vm.prank(hospital);
+        organDonation.registerHospital(1, "City Hospital", "New York");
+
+        vm.prank(hospital);
+        vm.expectRevert();
+        organDonation.createOrganRequest(1, 1, "kidney", "A+", 3, recipient);
+    }
+
+    function testFailInvalidUrgencyLevel() public {
+        vm.prank(hospital);
+        organDonation.registerHospital(1, "City Hospital", "New York");
+        // organDonation.verifyHospital(1);
+
+        vm.prank(hospital);
+        vm.expectRevert();
+        organDonation.createOrganRequest(1, 1, "kidney", "A+", 6, recipient);
+    }
+
+    // Organ Matching Tests
+    function testSuccessfulOrganMatch() public hospitalRegistered{
+        // Setup hospital
+        // vm.prank(hospital);
+        // organDonation.registerHospital(1, "City Hospital", "New York");
+        OrganDonation.Hospital memory hospitalData = organDonation.getHospital(1);
+        // organDonation.verifyHospital(1);
+
+        // Setup donor
+        vm.prank(donor);
+        organDonation.registerDonor(organs, nextOfKin, "ipfs_hash");
+
+        // Next of kin approval
         vm.prank(nextOfKin);
-        organ.approveAsDonor(donor);
+        organDonation.approveAsDonor(donor);
 
-        // Verify the hospital
-        organ.verifyHospital(hospital);
-
-        // Create an organ request
+        // Create request
         vm.prank(hospital);
-        organ.createOrganRequest(donor, "Heart", "O+", Organ.UrgencyLevel.Critical);
+        organDonation.createOrganRequest(1, 1, "kidney", "A+", 3, recipient);
 
-        // Attempt to match the organ as an unverified hospital
-        vm.prank(donor);
-        vm.expectRevert("Not a verified hospital");
-        organ.matchOrgan(0, donor);
+        // Match organ
+        vm.prank(hospital);
+        organDonation.matchOrgan(1, donor);
+
+        OrganDonation.OrganRequest memory request = organDonation.getOrganRequest(1);
+        assertEq(request.matchedDonor, donor);
+        assertFalse(request.isActive);
+        assertFalse(organDonation.isOrganAvailable(donor, "kidney"));
+
+        // (, , , , uint256 matchings) = organDonation.getHospital(1);
+        assertEq(hospitalData.matchingsCompleted, 1);
     }
 
-    function testOrganMatchingFailInactiveDonor() public {
-        // Register a donor but do not approve them
-        string[] memory organsList = new string[](2);
-        organsList[0] = "Heart";
-        organsList[1] = "Liver";
-        string memory ipfsHash = "QmExampleHash";
+    function testFailMatchWithoutNextOfKinApproval() public {
+        // Setup hospital
+        vm.prank(hospital);
+        organDonation.registerHospital(1, "City Hospital", "New York");
+        // organDonation.verifyHospital(1);
 
+        // Setup donor without next of kin approval
         vm.prank(donor);
-        organ.registerAsDonor(organsList, nextOfKin, ipfsHash);
+        organDonation.registerDonor(organs, nextOfKin, "ipfs_hash");
 
-        // Verify the hospital
-        organ.verifyHospital(hospital);
-
-        // Create an organ request
+        // Create request
         vm.prank(hospital);
-        organ.createOrganRequest(donor, "Heart", "O+", Organ.UrgencyLevel.Critical);
+        organDonation.createOrganRequest(1, 1, "kidney", "A+", 3, recipient);
 
-        // Attempt to match the organ with an inactive donor
+        // Try to match organ
         vm.prank(hospital);
-        vm.expectRevert("Donor not active");
-        organ.matchOrgan(0, donor);
+        vm.expectRevert();
+        organDonation.matchOrgan(1, donor);
+    }
+
+    // Getter Function Tests
+    function testGetAllHospitals() public {
+        vm.startPrank(hospital);
+        organDonation.registerHospital(1, "Hospital 1", "New York");
+        organDonation.registerHospital(2, "Hospital 2", "Boston");
+        vm.stopPrank();
+
+        OrganDonation.Hospital[] memory allHospitals = organDonation.getAllHospitals();
+        assertEq(allHospitals.length, 2);
+        assertEq(allHospitals[0].name, "Hospital 1");
+        assertEq(allHospitals[1].name, "Hospital 2");
+    }
+
+    function testGetAllRequests() public {
+        // Setup hospital
+        vm.prank(hospital);
+        organDonation.registerHospital(1, "City Hospital", "New York");
+        // organDonation.verifyHospital(1);
+
+        // Create multiple requests
+        vm.startPrank(hospital);
+        organDonation.createOrganRequest(1, 1, "kidney", "A+", 3, recipient);
+        organDonation.createOrganRequest(1, 2, "liver", "B+", 4, recipient);
+        vm.stopPrank();
+
+        OrganDonation.OrganRequest[] memory allRequests = organDonation.getAllRequests();
+        assertEq(allRequests.length, 2);
+        assertEq(allRequests[0].organType, "kidney");
+        assertEq(allRequests[1].organType, "liver");
+    }
+
+    function testOrganAvailability() public {
+        vm.prank(donor);
+        organDonation.registerDonor(organs, nextOfKin, "ipfs_hash");
+
+        assertTrue(organDonation.isOrganAvailable(donor, "kidney"));
+        assertTrue(organDonation.isOrganAvailable(donor, "liver"));
+        assertFalse(organDonation.isOrganAvailable(donor, "heart")); // Not registered
+    }
+
+    // Fuzz Tests
+    function testFuzz_HospitalRegistration(
+        uint256 id,
+        string memory name,
+        string memory city
+    ) public {
+        vm.assume(id != 0);
+        vm.assume(bytes(name).length > 0);
+        vm.assume(bytes(city).length > 0);
+
+        vm.prank(hospital);
+        organDonation.registerHospital(id, name, city);
+
+        OrganDonation.Hospital memory hospitalData = organDonation.getHospital(1);
+
+        assertEq(hospitalData.id, id);
+        assertEq(hospitalData.name, name);
+        assertEq(hospitalData.city, city);
+    }
+
+    function testFuzz_OrganRequest(
+        uint256 hospitalId,
+        uint256 requestId,
+        string memory organType,
+        string memory bloodType,
+        uint256 urgencyLevel
+    ) public {
+        vm.assume(hospitalId != 0);
+        vm.assume(requestId != 0);
+        vm.assume(bytes(organType).length > 0);
+        vm.assume(bytes(bloodType).length > 0);
+        vm.assume(urgencyLevel > 0 && urgencyLevel <= 5);
+
+        vm.prank(hospital);
+        organDonation.registerHospital(hospitalId, "Test Hospital", "Test City");
+        // organDonation.verifyHospital(hospitalId);
+
+        vm.prank(hospital);
+        organDonation.createOrganRequest(
+            hospitalId,
+            requestId,
+            organType,
+            bloodType,
+            urgencyLevel,
+            recipient
+        );
+
+        OrganDonation.OrganRequest memory request = organDonation.getOrganRequest(requestId);
+        assertEq(request.id, requestId);
+        assertEq(request.organType, organType);
+        assertEq(request.bloodType, bloodType);
+        assertEq(request.urgencyLevel, urgencyLevel);
     }
 }
