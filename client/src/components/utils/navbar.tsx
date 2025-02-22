@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
+import { ModeToggle } from "@/components/utils/mode-toggle"
 import { Droplet, Menu, X } from "lucide-react"
 
 export function Navbar() {
