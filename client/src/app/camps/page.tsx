@@ -9,7 +9,8 @@ import { MapPin } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useReadContract } from 'wagmi' // Updated import
 import { abi, contract_address } from '@/app/abis/bloodCamp'
-
+import { useGeolocation } from "@/components/hooks/useGeolocation"
+import calculateDistance from "@/lib/calculateDistance"
 const Map = dynamic(() => import("@/components/utils/map"), { ssr: false })
 
 export default function CampsPage() {
@@ -43,13 +44,14 @@ export default function CampsPage() {
     // args: [],
     // chainId: 84532, // Base Sepolia
   })
+  const { location,  error } = useGeolocation();
 
   return (
     <div className="container py-10">
       <div className="grid gap-6 md:grid-cols-[300px_1fr]">
         {/* Filters */}
         <div className="space-y-6">
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <h2 className="text-lg font-semibold">Blood Type</h2>
             <Select>
               <SelectTrigger>
@@ -66,9 +68,9 @@ export default function CampsPage() {
                 <SelectItem value="ab_neg">AB-</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <h2 className="text-lg font-semibold">Age Range</h2>
             <div className="space-y-4">
               <div className="space-y-1">
@@ -80,7 +82,7 @@ export default function CampsPage() {
                 <Slider defaultValue={[65]} max={100} min={18} step={1} />
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">Distance</h2>
@@ -119,6 +121,7 @@ export default function CampsPage() {
                     <h3 className="font-semibold">{camp.name}</h3>
                     <p className="text-sm text-muted-foreground">{camp.city}</p>
                     <p className="text-sm text-muted-foreground">Organized by: {camp.organizer}</p>
+                    <p className="text-sm text-muted-foreground">Located at: {calculateDistance(location?.latitude,location?.longitude,camp?.lat,camp?.long).toFixed(2)} Km</p>
                    
                   </div>
                 </div>
