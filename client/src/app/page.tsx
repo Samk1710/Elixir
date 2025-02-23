@@ -10,35 +10,35 @@ export default function LandingPage() {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-20 md:py-32 bg-gradient-to-b from-red-50 to-white">
+        <section className="py-20 md:py-32 bg-gradient-to-b from-red-50 to-white border">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
+            <div className="flex justify-center">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-7xl/none">
                     Every Drop of Blood
                     <span className="text-red-500"> Saves</span> a Life
                   </h1>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl">
+                  <p className="max-w-[600px] text-right text-gray-500 md:text-xl">
                     Join our community of lifesavers. Donate blood, earn unique NFT rewards, and make a real difference
                     in your community.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button className="bg-red-500 hover:bg-red-600" size="lg" onClick={() => alert("Find camps")}>
+                <div className="flex w-full justify-center gap-2">
+                  <a className="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-md text-white" href='/camps'>
                     Find Nearby Camps
                     <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  </a>
                   <Button variant="outline" size="lg" onClick={() => alert("Register camp")}>
                     Register Blood Camp
                   </Button>
                 </div>
               </div>
-              <img
-                src="https://images.onlymyhealth.com/imported/images/2024/June/14_Jun_2024/mn-donor.jpg"
+              {/* <img
+                src="/WhatsApp Image 2025-02-23 at 08.11.12_8c8ad7db.jpg"
                 alt="Blood Donation"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
-              />
+              /> */}
             </div>
           </div>
         </section>
