@@ -213,6 +213,27 @@ useEffect(() => {
         </div>
 
         {/* NFT Rewards */}
+        <section>
+          <h2 className="text-2xl font-bold mb-6">Your NFT Collection</h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {["Plasma Pioneer", "Golden Vein", "Lifesaver Elite", "Blood Hero"].map((nft, i) => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
+                    <Trophy className="h-16 w-16 text-primary" />
+                  </div>
+                  <div className="text-center mt-4 space-y-2">
+                    <h3 className="font-semibold text-lg">{nft}</h3>
+                    <p className="text-sm text-muted-foreground">Earned for your {i + 1}th donation</p>
+                    <Button variant="outline" className="w-full">
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
         
       </motion.div>
     </div>

@@ -70,6 +70,8 @@ export default function RewardsPage() {
             ))}
           </div>
         </section>
+
+        
       </div>
     </div>
   )
