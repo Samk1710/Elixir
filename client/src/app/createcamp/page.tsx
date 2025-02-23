@@ -7,11 +7,11 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useWriteContract, useAccount, useChainId, useSwitchChain } from "wagmi"
+import { useWriteContract } from "wagmi"
 import { abi, contract_address } from "@/app/abis/bloodCamp"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, MapPin, User, MapIcon as City, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
-import axios from "axios"
+
 import { Droplet,HeartPulse,Syringe,Activity,Users,Ambulance } from "lucide-react"
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -19,7 +19,7 @@ const fadeIn = {
 }
 
 export default function CreateCampPage() {
-  const { address, isConnected } = useAccount()
+ 
   const [id, setId] = useState<number>(0)
   const [name, setName] = useState<string>("")
   const [organizer, setOrganizer] = useState<string>("")
@@ -30,8 +30,8 @@ export default function CreateCampPage() {
 
   const { writeContract, isPending, isSuccess, isError } = useWriteContract()
   
-  const chainId = useChainId()
-  const { switchChain } = useSwitchChain()
+  // const chainId = useChainId()
+  // const { switchChain } = useSwitchChain()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,9 +45,9 @@ export default function CreateCampPage() {
     }
   }
 
-  const handleSwitchChain = () => {
-    switchChain({ chainId: 84532 })
-  }
+  // const handleSwitchChain = () => {
+  //   switchChain({ chainId: 84532 })
+  // }
 
   const getLocation = useCallback(() => {
     setIsLocating(true)

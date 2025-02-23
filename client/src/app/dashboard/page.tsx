@@ -7,7 +7,7 @@ import { DropletIcon, Calendar, Trophy, AlertTriangle, Upload, Copy, Bell } from
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { useReadContract } from 'wagmi';
 import { abi, contract_address } from '@/app/abis/user'; // Adjust the path to your contract ABI and address
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 
 const healthData = [
   { month: "Jan", hemoglobin: 14.2 },
@@ -35,13 +35,12 @@ export default function UserDashboard() {
   const { data: userData, isError, isLoading } = useReadContract({
     address: contract_address,
     abi,
-    functionName: 'getUser ',
-
-  });
-useEffect(() => {
-  console.log(userData);
-  }
-)
+    functionName: 'getUser',
+  }) as { data: [string, string], isError: boolean, isLoading: boolean };
+// useEffect(() => {
+//   console.log(userData);
+//   }
+// )
   return (
     <div className="container py-10">
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-8">

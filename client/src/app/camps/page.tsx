@@ -121,7 +121,7 @@ export default function CampsPage() {
                     <h3 className="font-semibold">{camp.name}</h3>
                     <p className="text-sm text-muted-foreground">{camp.city}</p>
                     <p className="text-sm text-muted-foreground">Organized by: {camp.organizer}</p>
-                    <p className="text-sm text-muted-foreground">Located at: {calculateDistance(location?.latitude,location?.longitude,camp?.lat,camp?.long).toFixed(2)} Km</p>
+                    <p className="text-sm text-muted-foreground">Located at: {calculateDistance(location?.latitude,location?.longitude,camp?.lat,camp?.long).toFixed()} Km</p>
                    
                   </div>
                 </div>

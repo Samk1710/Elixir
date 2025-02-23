@@ -38,7 +38,7 @@ export default function InventoryManager() {
     address: contract_address,
     abi,
     functionName: "getAllCamps",
-  })
+  }) as { data: Array<{ id: bigint; name: string; city: string; owner: string }> }
 
   const ownedCamps = (allCamps || []).filter((camp) => camp.owner.toLowerCase() === address?.toLowerCase())
 
@@ -174,7 +174,7 @@ function CurrentInventoryDisplay({ campId }: { campId: bigint }) {
       <h3 className="text-lg font-semibold">Current Inventory</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Object.values(BloodType)
-          .filter((value): value is number => typeof value === "number")
+          .filter((value): value is (typeof BloodType)[keyof typeof BloodType] => typeof value === "number" && value >= 0 && value <= 7)
           .map((bloodType) => (
             <InventoryItem key={bloodType} campId={campId} bloodType={bloodType} />
           ))}
@@ -188,10 +188,7 @@ function InventoryItem({ campId, bloodType }: { campId: bigint; bloodType: numbe
     address: contract_address,
     abi,
     functionName: "getInventory",
-    args: [campId, bloodType],
-    query: {
-      queryKey: ['getInventory', campId.toString(), bloodType]
-    }
+    args: [campId, bloodType]
   })
 
   const bloodTypeLabel = Object.keys(BloodType)
