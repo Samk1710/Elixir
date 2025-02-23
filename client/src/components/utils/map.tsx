@@ -93,8 +93,12 @@ export default function Map({ camps = [] }) {
           >
             <Popup>
               <div>
-                {location.name ? (
+                {location.name ? (<>
                   <div className="font-semibold mb-1">{location?.name}</div>
+                  <div className="font-semibold mb-1">City:{location?.city}</div>
+                </>
+                 
+                  
                 ) : (
                   <div>Location {index + 1}</div>
                 )}

@@ -119,8 +119,7 @@ export default function CampsPage() {
                     <h3 className="font-semibold">{camp.name}</h3>
                     <p className="text-sm text-muted-foreground">{camp.city}</p>
                     <p className="text-sm text-muted-foreground">Organized by: {camp.organizer}</p>
-                    <p>{camp.lat}</p>
-                    <p>{camp.long}</p>
+                   
                   </div>
                 </div>
                 <Button>Book Slot</Button>
