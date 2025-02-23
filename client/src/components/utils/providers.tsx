@@ -1,9 +1,9 @@
 'use client'
 
-import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit'
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { baseSepolia, mainnet, polygon, optimism, arbitrum, base } from 'wagmi/chains'
+
 import {config} from '@/lib/wagmi-config'
 
 // const config = getDefaultConfig({
