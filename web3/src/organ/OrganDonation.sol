@@ -100,6 +100,7 @@ contract OrganDonation {
         organDonationNFT = new OrganDonationNFT();
     }
 
+// 1 call
     function registerHospital(
         uint256 _id,
         string memory _name,
@@ -124,6 +125,7 @@ contract OrganDonation {
     //     hospitals[_id].isVerified = true;
     //     emit HospitalVerified(_id);
     // }
+
 
     function registerDonor(
         string[] memory _organs,
@@ -151,7 +153,7 @@ contract OrganDonation {
         emit DonorRegistered(msg.sender, _organs, _nextOfKin);
         emit NFTIssued(msg.sender, tokenId, uri);
     }
-
+// 2 call
     function approveAsDonor(address _donor) public {
         require(donors[_donor].nextOfKin == msg.sender, "Not authorized next of kin");
         donors[_donor].nextOfKinApproval = true;
@@ -208,6 +210,7 @@ contract OrganDonation {
         return hospitals[_id];
     }
 
+//have to call
     function getAllHospitals() public view returns (Hospital[] memory) {
         Hospital[] memory allHospitals = new Hospital[](hospitalIds.length);
         for (uint256 i = 0; i < hospitalIds.length; i++) {
