@@ -100,7 +100,7 @@ contract OrganDonation {
         organDonationNFT = new OrganDonationNFT();
     }
 
-// 1 call
+// org-hos-reg
     function registerHospital(
         uint256 _id,
         string memory _name,
@@ -120,11 +120,21 @@ contract OrganDonation {
         emit HospitalRegistered(_id, _name, _city, msg.sender);
     }
 
-    // function verifyHospital(uint256 _id) public hospitalExists(_id) {
-    //     require(msg.sender == organDonationNFT.owner(), "Only contract owner can verify hospitals");
-    //     hospitals[_id].isVerified = true;
-    //     emit HospitalVerified(_id);
-    // }
+    function getHospital(uint256 _id) public view hospitalExists(_id) returns (Hospital memory) {
+        return hospitals[_id];
+    }
+
+
+    function getAllHospitals() public view returns (Hospital[] memory) {
+        Hospital[] memory allHospitals = new Hospital[](hospitalIds.length);
+        for (uint256 i = 0; i < hospitalIds.length; i++) {
+            allHospitals[i] = hospitals[hospitalIds[i]];
+        }
+        return allHospitals;
+    }
+
+
+    // org-donor
 
 
     function registerDonor(
@@ -153,13 +163,34 @@ contract OrganDonation {
         emit DonorRegistered(msg.sender, _organs, _nextOfKin);
         emit NFTIssued(msg.sender, tokenId, uri);
     }
-// 2 call
+
     function approveAsDonor(address _donor) public {
         require(donors[_donor].nextOfKin == msg.sender, "Not authorized next of kin");
         donors[_donor].nextOfKinApproval = true;
         emit NextOfKinApproved(_donor, msg.sender);
     }
 
+    function getDonor(address _donor) public view returns (
+        string[] memory organs,
+        address nextOfKin,
+        bool isActive,
+        bool nextOfKinApproval,
+        string memory ipfsHealthRecords
+    ) {
+        Donor memory donor = donors[_donor];
+        return (
+            donor.organs,
+            donor.nextOfKin,
+            donor.isActive,
+            donor.nextOfKinApproval,
+            donor.ipfsHealthRecords
+        );
+    }
+
+
+
+
+//organ
     function createOrganRequest(
         uint256 _hospitalId,
         uint256 _requestId,
@@ -186,6 +217,31 @@ contract OrganDonation {
         emit OrganRequestCreated(_requestId, _organType, _urgencyLevel);
     }
 
+    
+    
+    function getOrganRequest(uint256 _id) public view returns (OrganRequest memory) {
+        return organRequests[_id];
+    }
+
+    function getAllRequests() public view returns (OrganRequest[] memory) {
+        OrganRequest[] memory allRequests = new OrganRequest[](requestIds.length);
+        for (uint256 i = 0; i < requestIds.length; i++) {
+            allRequests[i] = organRequests[requestIds[i]];
+        }
+        return allRequests;
+    }
+
+
+    
+    function isOrganAvailable(address _donor, string memory _organ) public view returns (bool) {
+        return organStatus[_donor][_organ];
+    }
+
+
+
+
+
+
     function matchOrgan(
         uint256 _requestId,
         address _donor
@@ -206,49 +262,4 @@ contract OrganDonation {
         emit OrganMatched(_requestId, _donor, request.recipient);
     }
 
-    function getHospital(uint256 _id) public view hospitalExists(_id) returns (Hospital memory) {
-        return hospitals[_id];
-    }
-
-//have to call
-    function getAllHospitals() public view returns (Hospital[] memory) {
-        Hospital[] memory allHospitals = new Hospital[](hospitalIds.length);
-        for (uint256 i = 0; i < hospitalIds.length; i++) {
-            allHospitals[i] = hospitals[hospitalIds[i]];
-        }
-        return allHospitals;
-    }
-
-    function getOrganRequest(uint256 _id) public view returns (OrganRequest memory) {
-        return organRequests[_id];
-    }
-
-    function getAllRequests() public view returns (OrganRequest[] memory) {
-        OrganRequest[] memory allRequests = new OrganRequest[](requestIds.length);
-        for (uint256 i = 0; i < requestIds.length; i++) {
-            allRequests[i] = organRequests[requestIds[i]];
-        }
-        return allRequests;
-    }
-
-    function getDonor(address _donor) public view returns (
-        string[] memory organs,
-        address nextOfKin,
-        bool isActive,
-        bool nextOfKinApproval,
-        string memory ipfsHealthRecords
-    ) {
-        Donor memory donor = donors[_donor];
-        return (
-            donor.organs,
-            donor.nextOfKin,
-            donor.isActive,
-            donor.nextOfKinApproval,
-            donor.ipfsHealthRecords
-        );
-    }
-
-    function isOrganAvailable(address _donor, string memory _organ) public view returns (bool) {
-        return organStatus[_donor][_organ];
-    }
 }

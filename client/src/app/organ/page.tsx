@@ -1,182 +1,130 @@
+// organ req
+
+
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useReadContract, useWriteContract, useAccount } from 'wagmi';
-import { abi, contract_address } from "../abis/organDonation";
+import { abi, contract_address } from '../abis/organDonation';
 
-export default function OrganDonationPage() {
+const OrganDonationPage = () => {
   const { address } = useAccount();
-  const [organRequestId, setOrganRequestId] = useState<number>(0);
-  const [donorAddress, setDonorAddress] = useState<string>('');
+  const [requestId, setRequestId] = useState<number>(0);
   const [organType, setOrganType] = useState<string>('');
-  const [hospitalId, setHospitalId] = useState<number>(0);
-  const [matchStatus, setMatchStatus] = useState<string>('');
+  const [bloodType, setBloodType] = useState<string>('');
+  const [urgencyLevel, setUrgencyLevel] = useState<number>(1);
+  const [recipient, setRecipient] = useState<string>('');
+  const [allRequests, setAllRequests] = useState<any[]>([]);
+  const [donorAddress, setDonorAddress] = useState<string>('');
+  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
 
-  // Fetch all organ requests
-  const { data: allRequests } = useReadContract({
-    abi,
+  const { data: organRequest } = useReadContract({
     address: contract_address,
+    abi,
+    functionName: 'getOrganRequest',
+    args: [requestId],
+  });
+
+  const { data: allOrganRequests } = useReadContract({
+    address: contract_address,
+    abi,
     functionName: 'getAllRequests',
   });
 
-  // Fetch a specific organ request by ID
-  const { data: organRequest } = useReadContract({
-    abi,
+  const { write: createRequest } = useWriteContract({
     address: contract_address,
-    functionName: 'getOrganRequest',
-    args: [organRequestId],
+    abi,
+    functionName: 'createOrganRequest',
+    args: [1, requestId, organType, bloodType, urgencyLevel, recipient], // Replace 1 with actual hospitalId
   });
 
-  // Fetch donor details
-  const { data: donorDetails } = useReadContract({
-    abi,
+  const { data: availability } = useReadContract({
     address: contract_address,
-    functionName: 'getDonor',
-    args: [donorAddress],
-  });
-
-  // Check if an organ is available
-  const { data: isOrganAvailable } = useReadContract({
     abi,
-    address: contract_address,
     functionName: 'isOrganAvailable',
     args: [donorAddress, organType],
   });
 
-  // Function to match organ
-  const matchOrgan = async () => {
-    try {
-      const result = await useWriteContract({
-        abi,
-        address: contract_address,
-        functionName: 'matchOrgan',
-        args: [organRequestId, donorAddress],
-      });
-      setMatchStatus('Organ matched successfully!');
-    } catch (error) {
-      setMatchStatus('Error matching organ: ' + error.message);
+  useEffect(() => {
+    if (allOrganRequests) {
+      setAllRequests(allOrganRequests);
+    }
+  }, [allOrganRequests]);
+
+  const handleCreateRequest = async () => {
+    await createRequest();
+    // Optionally, you can reset the form or fetch the updated requests
+  };
+
+  const checkAvailability = async () => {
+    if (availability) {
+      setIsAvailable(availability);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-4xl font-bold text-center text-blue-600 mb-8">Organ Donation System</h1>
+    <div>
+      <h1>Organ Donation Requests</h1>
+      <div>
+        <h2>Create Organ Request</h2>
+        <input
+          type="number"
+          placeholder="Request ID"
+          value={requestId}
+          onChange={(e) => setRequestId(Number(e.target.value))}
+        />
+        <input
+          type="text"
+          placeholder="Organ Type"
+          value={organType}
+          onChange={(e) => setOrganType(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Blood Type"
+          value={bloodType}
+          onChange={(e) => setBloodType(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Urgency Level (1-5)"
+          value={urgencyLevel}                                                                                                                                                                                                                                                                                                                                                                                                          
+          onChange={(e) => setUrgencyLevel(Number(e.target.value))}
+        />
+        <input
+          type="text"
+          placeholder="Recipient Address"
+          value={recipient}
+          onChange={(e) => setRecipient(e.target.value)}
+        />
+        <button onClick={createRequest}>Create Request</button>
+      </div>
 
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6 space-y-6">
-        {/* All Organ Requests */}
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-700">All Organ Requests</h2>
-          <ul className="mt-4 space-y-2">
-            {allRequests?.map((request: any) => (
-              <li key={request.id} className="bg-gray-200 p-4 rounded-lg">
-                <span className="font-semibold">ID:</span> {request.id},
-                <span className="font-semibold"> Organ:</span> {request.organType},
-                <span className="font-semibold"> Urgency:</span> {request.urgencyLevel}
-              </li>
-            ))}
-          </ul>
-        </section>
+      <div>
+        <h2>All Organ Requests</h2>
+        <ul>
+          {allRequests.map((request, index) => (
+            <li key={index}>
+              ID: {request.id}, Organ: {request.organType}, Urgency: {request.urgencyLevel}
+            </li>
+          ))}
+        </ul>
+      </div>
 
-        {/* Fetch Specific Organ Request */}
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-700">Fetch Specific Organ Request</h2>
-          <input
-            type="number"
-            placeholder="Organ Request ID"
-            className="w-full mt-2 p-2 border rounded-lg"
-            value={organRequestId}
-            onChange={(e) => setOrganRequestId(Number(e.target.value))}
-          />
-          {organRequest ? (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-              <p><span className="font-semibold">ID:</span> {organRequest?.id}</p>
-              <p><span className="font-semibold">Organ:</span> {organRequest?.organType}</p>
-              <p><span className="font-semibold">Urgency:</span> {organRequest?.urgencyLevel}</p>
-            </div>
-          ) : null}
-        </section>
-
-        {/* Fetch Donor Details */}
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-700">Fetch Donor Details</h2>
-          <input
-            type="text"
-            placeholder="Donor Address"
-            className="w-full mt-2 p-2 border rounded-lg"
-            value={donorAddress}
-            onChange={(e) => setDonorAddress(e.target.value)}
-          />
-          {donorDetails ? (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-              <p><span className="font-semibold">Organs:</span> {donorDetails?.organs?.join(', ')}</p>
-              <p><span className="font-semibold">Next of Kin:</span> {donorDetails?.nextOfKin}</p>
-              <p><span className="font-semibold">Active:</span> {donorDetails.isActive ? 'Yes' : 'No'}</p>
-              <p><span className="font-semibold">Next of Kin Approval:</span> {donorDetails.nextOfKinApproval ? 'Yes' : 'No'}</p>
-              <p><span className="font-semibold">IPFS Health Records:</span> {donorDetails.ipfsHealthRecords}</p>
-            </div>
-          ) : null}
-        </section>
-
-        {/* Check Organ Availability */}
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-700">Check Organ Availability</h2>
-          <input
-            type="text"
-            placeholder="Donor Address"
-            className="w-full mt-2 p-2 border rounded-lg"
-            value={donorAddress}
-            onChange={(e) => setDonorAddress(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Organ Type"
-            className="w-full mt-2 p-2 border rounded-lg"
-            value={organType}
-            onChange={(e) => setOrganType(e.target.value)}
-          />
-          {isOrganAvailable !== undefined && (
-            <p className="mt-4 p-4 bg-gray-100 rounded-lg">
-              <span className="font-semibold">Organ Available:</span> {isOrganAvailable ? 'Yes' : 'No'}
-            </p>
-          )}
-        </section>
-
-        {/* Match Organ */}
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-700">Match Organ</h2>
-          <input
-            type="number"
-            placeholder="Hospital ID"
-            className="w-full mt-2 p-2 border rounded-lg"
-            value={hospitalId}
-            onChange={(e) => setHospitalId(Number(e.target.value))}
-          />
-          <input
-            type="number"
-            placeholder="Organ Request ID"
-            className="w-full mt-2 p-2 border rounded-lg"
-            value={organRequestId}
-            onChange={(e) => setOrganRequestId(Number(e.target.value))}
-          />
-          <input
-            type="text"
-            placeholder="Donor Address"
-            className="w-full mt-2 p-2 border rounded-lg"
-            value={donorAddress}
-            onChange={(e) => setDonorAddress(e.target.value)}
-          />
-          <button
-            onClick={matchOrgan}
-            className="mt-4 w-full bg-blue-600 text-white p-2 rounded-lg"
-          >
-            Match Organ
-          </button>
-          {matchStatus && (
-            <p className="mt-4 p-4 bg-gray-100 rounded-lg">
-              {matchStatus}
-            </p>
-          )}
-        </section>
+      <div>
+        <h2>Check Organ Availability</h2>
+        <input
+          type="text"
+          placeholder="Donor Address"
+          value={donorAddress}
+          onChange={(e) => setDonorAddress(e.target.value)}
+        />
+        <button onClick={checkAvailability}>Check Availability</button>
+        {isAvailable !== null && (
+          <p>Organ Available: {isAvailable ? 'Yes' : 'No'}</p>
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default OrganDonationPage;

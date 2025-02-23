@@ -1,3 +1,5 @@
+// organ donar
+
 "use client";
 import { useState } from 'react';
 import { 
@@ -12,6 +14,14 @@ interface Hospital {
   name: string;
   address: string;
   // Add other hospital properties based on your ABI
+}
+
+interface Donor {
+  organs: string[];
+  nextOfKin: string;
+  isActive: boolean;
+  nextOfKinApproval: boolean;
+  ipfsHealthRecords: string;
 }
 
 export default function OrganDonation() {
@@ -33,6 +43,19 @@ export default function OrganDonation() {
     abi,
     address: contract_address,
     functionName: 'getAllHospitals',
+  });
+
+  // Read donor data
+  const { 
+    data: donorData,
+    error: donorError,
+    isPending: isDonorLoading
+  } = useReadContract({
+    abi,
+    address: contract_address,
+    functionName: 'getDonor',
+    args: [donorAddress],
+    enabled: !!donorAddress, // Only fetch if donorAddress is set
   });
 
   // Register Donor Handler
@@ -155,6 +178,47 @@ export default function OrganDonation() {
             </button>
           </div>
         </form>
+      </section>
+
+      {/* Donor Details Section */}
+      <section className="mb-12 bg-gray-50 p-6 rounded-lg shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Donor Details</h2>
+        <form className="max-w-md">
+          <div className="flex gap-4">
+            <input
+              type="text"
+              value={donorAddress}
+              onChange={(e) => setDonorAddress(e.target.value)}
+              placeholder="Enter donor address"
+              className="flex-1 p-2 border rounded"
+              required
+            />
+          </div>
+        </form>
+        {isDonorLoading && <div className="mb-4">Loading donor details...</div>}
+        {donorError && (
+          <div className="text-red-500 mb-4">Error: {donorError.message}</div>
+        )}
+        {donorData && (
+          <div className="mt-4">
+            <h3 className="font-medium text-lg">Donor Information</h3>
+            <p className="text-sm text-gray-600 mt-2">
+              Organs: {(donorData as Donor).organs.join(', ')}
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Next of Kin: {(donorData as Donor).nextOfKin}
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Is Active: {(donorData as Donor).isActive ? 'Yes' : 'No'}
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Next of Kin Approval: {(donorData as Donor).nextOfKinApproval ? 'Yes' : 'No'}
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              IPFS Health Records: {(donorData as Donor).ipfsHealthRecords}
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Hospitals Section */}
