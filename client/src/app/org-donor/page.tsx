@@ -203,7 +203,7 @@ export default function OrganDonation() {
           <div className="mt-4">
             <h3 className="font-medium text-lg">Donor Information</h3>
             <p className="text-sm text-gray-600 mt-2">
-              Organs: {(donorData as Donor).organs.join(', ')}
+              Organs: {(donorData as Donor).organs?.join(', ')}
             </p>
             <p className="text-sm text-gray-600 mt-2">
               Next of Kin: {(donorData as Donor).nextOfKin}
