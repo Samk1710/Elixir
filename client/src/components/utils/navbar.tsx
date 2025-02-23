@@ -42,9 +42,7 @@ export function Navbar() {
           <Link href="/dashboard" className="transition-colors hover:text-primary duration-200">
             Dashboard
           </Link>
-          <Link href="/rewards" className="transition-colors hover:text-primary duration-200">
-            Rewards
-          </Link>
+          
           <Link href="/community" className="transition-colors hover:text-primary duration-200">
             Community
           </Link>
@@ -55,15 +53,21 @@ export function Navbar() {
             Upload
           </Link>
           <Link href="/createcamp" className="transition-colors hover:text-primary duration-200">
-            create camp
+            Create Camp
+          </Link>
+          <Link href="/organ" className="transition-colors hover:text-primary duration-200">
+            Organ
+          </Link>
+          <Link href="/org-donor" className="transition-colors hover:text-primary duration-200">
+            Organ Donor
+          </Link>
+          <Link href="/org-hos-reg" className="transition-colors hover:text-primary duration-200">
+            Organ Host Register
+          </Link>
+          <Link href="/mint-nft" className="transition-colors hover:text-primary duration-200">
+            Mint Nft
           </Link>
           
-          <Link href="/mint-nft" className="transition-colors hover:text-primary duration-200">
-            mint nft
-          </Link>
-          <Link href="/user-create" className="transition-colors hover:text-primary duration-200">
-           user create
-          </Link>
         </nav>
 
         {/* Mobile Menu */}
@@ -76,9 +80,7 @@ export function Navbar() {
               <Link href="/dashboard" className="block transition-colors hover:text-primary duration-200">
                 Dashboard
               </Link>
-              <Link href="/rewards" className="block transition-colors hover:text-primary duration-200">
-                Rewards
-              </Link>
+              
               <Link href="/community" className="block transition-colors hover:text-primary duration-200">
                 Community
               </Link>
@@ -88,11 +90,7 @@ export function Navbar() {
               <Link href="/upload" className="block transition-colors hover:text-primary duration-200">
                 Upload
               </Link>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/login" className="block text-center">
-                  Login
-                </Link>
-              </Button>
+              
             </div>
           </div>
         )}
@@ -100,11 +98,7 @@ export function Navbar() {
         {/* Right Side Controls */}
         <div className="flex items-center space-x-4">
           <ModeToggle />
-          <Button variant="outline" asChild className="max-md:hidden">
-            <Link href="/login" className="transition-colors hover:text-primary duration-200">
-              Login
-            </Link>
-          </Button>
+          
           <ConnectButton
             accountStatus={{
               smallScreen: 'avatar',

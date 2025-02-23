@@ -18,8 +18,18 @@ export default function CampsPage() {
     address: contract_address,
     abi,
     functionName: 'getAllCamps',
-   
-  })
+  }) as { 
+    data: Array<{
+      id: string;
+      name: string;
+      city: string;
+      organizer: string;
+      lat: number;
+      long: number;
+    }>;
+    isError: boolean;
+    isLoading: boolean;
+  };
   const { location } = useGeolocation();
 
   return (
