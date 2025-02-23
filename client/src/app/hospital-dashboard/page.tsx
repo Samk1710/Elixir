@@ -1,139 +1,103 @@
 "use client"
-import { useState } from 'react'; // Import useState
-import { useReadContracts } from 'wagmi'
+
+import type React from "react"
+import { useEffect } from "react"
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
+import { useQueryClient } from "@tanstack/react-query"
+import { abi, contract_address } from "@/app/abis/bloodCamp"
+import { useState } from "react"
+import type { Hex } from "viem"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { AlertTriangle, Trophy } from "lucide-react"
-import { abi, contract_address } from '@/app/abis/bloodCamp'
+import { Building2, CheckCircle2, Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
-const donationData = [
-  { month: "Jan", donations: 65 },
-  { month: "Feb", donations: 59 },
-  { month: "Mar", donations: 80 },
-  { month: "Apr", donations: 81 },
-  { month: "May", donations: 56 },
-  { month: "Jun", donations: 55 },
-]
+const BLOOD_CAMP_ADDRESS = "0x..." as Hex
 
-const BLOOD_TYPES = [
-  { type: "O+", enum: 0 },
-  { type: "O-", enum: 1 },
-  { type: "A+", enum: 2 },
-  { type: "A-", enum: 3 },
-  { type: "B+", enum: 4 },
-  { type: "B-", enum: 5 },
-  { type: "AB+", enum: 6 },
-  { type: "AB-", enum: 7 },
-]
+const BloodType = {
+  O_POS: 0,
+  O_NEG: 1,
+  A_POS: 2,
+  A_NEG: 3,
+  B_POS: 4,
+  B_NEG: 5,
+  AB_POS: 6,
+  AB_NEG: 7,
+} as const
 
-export default function HospitalDashboard() {
-  const [campId, setCampId] = useState('0123'); // State for campId
-const [camp, setCamp] = useState('0123'); // State for campId
-  // Fetch all blood type inventories in a single multicall
-  const { data, isLoading, isError } = useReadContracts({
-    contracts: BLOOD_TYPES.map(bt => ({
+export default function InventoryManager() {
+  const { address } = useAccount()
+  const queryClient = useQueryClient()
+  const [selectedCampId, setSelectedCampId] = useState<bigint | null>(null)
+  const [bloodType, setBloodType] = useState<number>(0)
+  const [quantity, setQuantity] = useState<string>("0")
+
+  const { data: allCamps } = useReadContract({
+    address: contract_address,
+    abi,
+    functionName: "getAllCamps",
+  })
+
+  const ownedCamps = (allCamps || []).filter((camp) => camp.owner.toLowerCase() === address?.toLowerCase())
+
+  const { writeContract, isPending, data: hash } = useWriteContract()
+
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  useEffect(() => {
+    if (isSuccess) {
+      queryClient.invalidateQueries({
+        queryKey: ['readContract', { functionName: 'getInventory' }]
+      })
+    }
+  }, [isSuccess, queryClient])
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedCampId) return
+
+    writeContract({
       address: contract_address,
       abi,
-      functionName: 'getInventory',
-      args: [BigInt(camp), bt.enum],
-    })),
-  })
-
-  // Process inventory data
-  const bloodStock = BLOOD_TYPES.map((bt, index) => {
-    const result = data?.[index]?.result
-    const level = result ? Number(result) : 0
-    
-    let status: "critical" | "low" | "normal" = "normal"
-    if (level <= 20) status = "critical"
-    else if (level <= 50) status = "low"
-
-    return { 
-      type: bt.type,
-      level,
-      status
-    }
-  })
-
-  if (isLoading) return <div className="container py-10">Loading inventory...</div>
-  if (isError) return <div className="container py-10">Error loading inventory</div>
+      functionName: "updateInventory",
+      args: [selectedCampId, bloodType, BigInt(quantity)],
+    })
+  }
 
   return (
-    <div className="container py-10">
-      {/* Camp ID Input */}
-      <div className="mb-4">
-        <input
-          type="text"
-          value={campId}
-          onChange={(e) => setCampId(e.target.value)} // Update campId state
-          placeholder="Enter Camp ID"
-          className="border rounded p-2"
-        />
-        <Button className='ml-4' onClick={() => {setCamp(campId)}}>
-          Fetch Inventory
-        </Button>
-      </div>
+    <div className="container max-w-5xl py-8">
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Blood Camp Inventory</h1>
+          <p className="text-muted-foreground mt-2">Manage your blood camp inventory levels</p>
+        </div>
 
-      {/* Emergency Broadcast */}
-      <Card className="mb-8 bg-destructive/5 border-destructive/50">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <AlertTriangle className="h-8 w-8 text-destructive" />
-              <div>
-                <h3 className="font-semibold text-lg">Emergency Blood Required</h3>
-                <p className="text-sm text-muted-foreground">Broadcast alert to nearby donors</p>
-              </div>
-            </div>
-            <Button variant="destructive">Send SOS</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-8">
-        {/* Blood Inventory */}
         <Card>
           <CardHeader>
-            <CardTitle>Blood Inventory</CardTitle>
-            <CardDescription>Current blood stock levels</CardDescription>
+            <CardTitle>Your Blood Camps</CardTitle>
+            <CardDescription>Select a camp to update its inventory</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-4">
-              {bloodStock.map((stock) => (
-                <Card key={stock.type}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {ownedCamps.map((camp) => (
+                <Card
+                  key={camp.id.toString()}
+                  className={cn(
+                    "cursor-pointer transition-colors hover:bg-accent",
+                    selectedCampId === camp.id && "border-primary bg-primary/5",
+                  )}
+                  onClick={() => setSelectedCampId(camp.id)}
+                >
                   <CardContent className="pt-6">
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className="relative w-20 h-32">
-                        <div
-                          className="absolute inset-x-0 bottom-0 bg-muted rounded-lg w-full"
-                          style={{ height: "100%" }}
-                        >
-                          <div
-                            className={`absolute inset-x-0 bottom-0 rounded-lg transition-all duration-500 ${
-                              stock.status === "critical"
-                                ? "bg-destructive"
-                                : stock.status === "low"
-                                  ? "bg-yellow-500"
-                                  : "bg-primary"
-                            }`}
-                            style={{ height: `${stock.level}%` }}
-                          />
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <h4 className="font-semibold">{stock.type}</h4>
-                        <p
-                          className={`text-sm ${
-                            stock.status === "critical"
-                              ? "text-destructive"
-                              : stock.status === "low"
-                                ? "text-yellow-500"
-                                : "text-primary"
-                          }`}
-                        >
-                          {stock.level}%
-                        </p>
+                    <div className="flex items-start space-x-3">
+                      <Building2 className="h-5 w-5 text-primary mt-1" />
+                      <div>
+                        <h3 className="font-medium">{camp.name}</h3>
+                        <p className="text-sm text-muted-foreground">{camp.city}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -143,59 +107,131 @@ const [camp, setCamp] = useState('0123'); // State for campId
           </CardContent>
         </Card>
 
-        {/* Analytics */}
-        <div className="grid gap-8 md:grid-cols-[2fr_1fr]">
+        {selectedCampId && (
           <Card>
             <CardHeader>
-              <CardTitle>Monthly Donations</CardTitle>
-              <CardDescription>Number of donations per month</CardDescription>
+              <CardTitle>Update Inventory</CardTitle>
+              <CardDescription>Modify blood stock levels for the selected camp</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={donationData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="donations" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Lifesavers</CardTitle>
-              <CardDescription>Most active donors this month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { name: "Alex Johnson", donations: 5 },
-                  { name: "Sarah Smith", donations: 4 },
-                  { name: "Mike Brown", donations: 3 },
-                ].map((donor, i) => (
-                  <div key={i} className="flex items-center justify-between space-x-4">
-                    <div className="flex items-center space-x-4">
-                      <Trophy
-                        className={`h-4 w-4 ${
-                          i === 0 ? "text-yellow-500" : i === 1 ? "text-gray-400" : "text-amber-600"
-                        }`}
-                      />
-                      <div>
-                        <p className="font-medium">{donor.name}</p>
-                        <p className="text-sm text-muted-foreground">{donor.donations} donations</p>
-                      </div>
-                    </div>
+              <form onSubmit={handleUpdate} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Blood Type</label>
+                    <Select value={bloodType.toString()} onValueChange={(value) => setBloodType(Number(value))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select blood type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(BloodType)
+                          .filter(([key]) => isNaN(Number(key)))
+                          .map(([key, value]) => (
+                            <SelectItem key={key} value={value.toString()}>
+                              {key.replace("_POS", "+").replace("_NEG", "-")}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                ))}
-              </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Quantity</label>
+                    <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0" />
+                  </div>
+                </div>
+
+                <Button type="submit" className="w-full" disabled={isPending || isConfirming}>
+                  {isPending || isConfirming ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Inventory"
+                  )}
+                </Button>
+
+                {isSuccess && (
+                  <div className="flex items-center justify-center text-sm text-green-600 dark:text-green-500">
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Inventory updated successfully!
+                  </div>
+                )}
+              </form>
+
+              <CurrentInventoryDisplay campId={selectedCampId} />
             </CardContent>
           </Card>
-        </div>
+        )}
       </div>
     </div>
+  )
+}
+
+function CurrentInventoryDisplay({ campId }: { campId: bigint }) {
+  return (
+    <div className="mt-8 space-y-4">
+      <h3 className="text-lg font-semibold">Current Inventory</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Object.values(BloodType)
+          .filter((value): value is number => typeof value === "number")
+          .map((bloodType) => (
+            <InventoryItem key={bloodType} campId={campId} bloodType={bloodType} />
+          ))}
+      </div>
+    </div>
+  )
+}
+
+function InventoryItem({ campId, bloodType }: { campId: bigint; bloodType: number }) {
+  const { data: inventory } = useReadContract({
+    address: contract_address,
+    abi,
+    functionName: "getInventory",
+    args: [campId, bloodType],
+    query: {
+      queryKey: ['getInventory', campId.toString(), bloodType]
+    }
+  })
+
+  const bloodTypeLabel = Object.keys(BloodType)
+    .find((key) => BloodType[key as keyof typeof BloodType] === bloodType)
+    ?.replace("_POS", "+")
+    .replace("_NEG", "-")
+
+  const inventoryValue = Number(inventory) || 0
+  const percentage = Math.min(Math.round((inventoryValue / 100) * 100), 100)
+
+  const getInventoryColor = (value: number) => {
+    if (value === 0) return "text-gray-400"
+    if (value <= 20) return "text-red-500"
+    if (value <= 50) return "text-yellow-500"
+    return "text-green-500"
+  }
+
+  const getFillColor = (value: number) => {
+    if (value === 0) return "bg-gray-200"
+    if (value <= 20) return "bg-red-500"
+    if (value <= 50) return "bg-yellow-500"
+    return "bg-green-500"
+  }
+
+  return (
+    <Card className="relative overflow-hidden">
+      <CardContent className="pt-6">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative w-12 h-24 bg-gray-100 rounded-lg overflow-hidden">
+            <div
+              className={`absolute bottom-0 left-0 right-0 ${getFillColor(percentage)} transition-all duration-500`}
+              style={{ height: `${percentage}%` }}
+            />
+          </div>
+          <div className="text-center">
+            <div className="font-medium text-lg">{bloodTypeLabel}</div>
+            <div className={`text-sm ${getInventoryColor(percentage)}`}>{percentage}%</div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

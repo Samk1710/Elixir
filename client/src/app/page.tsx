@@ -8,7 +8,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="min-h-screen flex-1 flex flex-col items-center justify-center space-y-10 px-4 py-24 text-center ">
         <div className="space-y-4 max-w-3xl">
-          <h1 className="font-rubik text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter bg-gradient-to-r from-orange-600 via-red-700 to-red-500 bg-clip-text text-transparent animate-gradient bg-[400%] animate-gradient brightness-125 contrast-125">
+          <h1 className="font-rubik text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter bg-gradient-to-r from-orange-600 via-red-700 to-red-500 bg-clip-text text-transparent bg-[400%] animate-gradient brightness-125 contrast-125">
             Your Blood. Their Lives.
           </h1>
           <h2 className="font-rubik text-sm sm:text-lg md:text-xl font-medium tracking-tight bg-gradient-to-r from-blue-300 via-purple-500 to-blue-300 bg-clip-text text-transparent animate-gradient bg-[300%]">

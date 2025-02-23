@@ -57,9 +57,7 @@ export function Navbar() {
           <Link href="/createcamp" className="transition-colors hover:text-primary duration-200">
             create camp
           </Link>
-          <Link href="/update-inventory" className="transition-colors hover:text-primary duration-200">
-            update inventory
-          </Link>
+          
           <Link href="/mint-nft" className="transition-colors hover:text-primary duration-200">
             mint nft
           </Link>

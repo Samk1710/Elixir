@@ -60,6 +60,15 @@ module.exports = {
         sans: ["var(--font-inter)"],
         rubik: ["var(--font-rubik)"],
       },
+      
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        float: "float 6s ease-in-out infinite",
+        "float-slow": "float-slow 7s ease-in-out infinite",
+        "float-slower": "float-slower 8s ease-in-out infinite",
+        gradient: "gradient 6s linear infinite",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: 0 },
@@ -69,11 +78,25 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-20px)" },
+        },
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "float-slower": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
+        },
+        gradient: {
+          "0%": { backgroundPosition: "0% 50%" },
+          "100%": { backgroundPosition: "100% 50%" },
+        },
       },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-      },
+     
+    
     },
   },
   plugins: [require("tailwindcss-animate")],
