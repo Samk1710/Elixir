@@ -12,7 +12,7 @@ import { abi, contract_address } from "@/app/abis/bloodCamp"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, MapPin, User, MapIcon as City, Loader2, CheckCircle2, AlertCircle } from "lucide-react"
 import axios from "axios"
-
+import { Droplet,HeartPulse,Syringe,Activity,Users,Ambulance } from "lucide-react"
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
@@ -75,8 +75,14 @@ export default function CreateCampPage() {
 
   return (
     <div className="container max-w-2xl py-10">
-      <motion.div initial="hidden" animate="visible" variants={fadeIn} className="space-y-8">
-        <div className="space-y-2">
+       <Droplet className="absolute top-20 left-[15%] h-8 w-8 text-red-700/30 animate-float-slow" />
+        <Ambulance className="absolute top-40 right-[20%] h-9 w-9 text-red-500/30 animate-float-slower" />
+        <HeartPulse className="absolute bottom-[30%] left-[10%] h-10 w-10 text-red-500/40 animate-float" />
+        <Syringe className="absolute top-[60%] right-[15%] h-8 w-8 text-red-500/30 animate-float" />
+        <Activity className="absolute bottom-[20%] right-[25%] h-7 w-7 text-red-500/30 animate-float-slower" />
+        <Users className="absolute top-[35%] left-[25%] h-9 w-9 text-red-500/30 animate-float" />
+      <motion.div initial="hidden" animate="visible" variants={fadeIn} className="space-y-8 ">
+        <div className="space-y-2 ">
           <h1 className="text-3xl font-bold tracking-tight">Create Blood Camp</h1>
           <p className="text-muted-foreground">Register a new blood donation camp and provide its location details</p>
         </div>
