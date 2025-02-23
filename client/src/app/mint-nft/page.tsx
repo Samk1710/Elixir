@@ -36,17 +36,12 @@ const IssueNFTPage = () => {
     e.preventDefault()
 
     try {
-      const result = writeContract({
+      writeContract({
         address: contractAddress,
         abi,
         functionName: "issueNFT",
         args: [campId, recipientAddress, uri],
       })
-
-      if (result) {
-        setTxHash(result)
-        console.log("Transaction hash:", result)
-      }
     } catch (err) {
       console.error("Transaction failed:", err)
     }

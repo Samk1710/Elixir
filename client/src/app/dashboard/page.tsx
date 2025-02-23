@@ -7,7 +7,7 @@ import { DropletIcon, Calendar, Trophy, AlertTriangle, Upload, Copy, Bell } from
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { useReadContract } from 'wagmi';
 import { abi, contract_address } from '@/app/abis/user'; // Adjust the path to your contract ABI and address
-import { useEffect } from "react"
+import { Gift } from "lucide-react"
 
 const healthData = [
   { month: "Jan", hemoglobin: 14.2 },
@@ -215,7 +215,7 @@ export default function UserDashboard() {
         <section>
           <h2 className="text-2xl font-bold mb-6">Your NFT Collection</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {["Plasma Pioneer", "Golden Vein", "Lifesaver Elite", "Blood Hero"].map((nft, i) => (
+            {["Golden Vein", "Lifesaver Elite", "Blood Hero"].map((nft, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
                   <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
@@ -233,6 +233,45 @@ export default function UserDashboard() {
             ))}
           </div>
         </section>
+        <section>
+          <h2 className="text-2xl font-bold mb-6">Available Rewards</h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                name: "Amazon Voucher",
+                description: "₹500 shopping voucher",
+                cost: "2 NFTs",
+              },
+              {
+                name: "Zomato Pro",
+                description: "1 month subscription",
+                cost: "1 NFT",
+              },
+              {
+                name: "Health Checkup",
+                description: "Free basic health screening",
+                cost: "3 NFTs",
+              },
+            ].map((reward, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Gift className="h-5 w-5" />
+                    <span>{reward.name}</span>
+                  </CardTitle>
+                  <CardDescription>{reward.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Cost: {reward.cost}</span>
+                    <Button>Redeem</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
         
       </motion.div>
     </div>

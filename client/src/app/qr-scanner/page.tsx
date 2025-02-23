@@ -60,7 +60,7 @@ export default function WalletScanner() {
   }
 
   const validateWalletAddress = (address: string) => {
-    if (ethers.utils.isAddress(address)) {
+    if (ethers.isAddress(address)) {
       setWalletAddress(address)
     } else {
       setCameraError("Invalid Ethereum address")

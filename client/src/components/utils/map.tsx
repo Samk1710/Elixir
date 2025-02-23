@@ -4,20 +4,12 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { useGeolocation } from "../hooks/useGeolocation"
-// interface Location {
-//   latitude: number
-//   longitude: number
-// }
-
-// interface MapLocation {
-//   latitude: number
-//   longitude: number
-//   name?: string
-// }
-
-// interface MapProps {
-//   nearbyCamps?: MapLocation[]
-// }
+interface CampLocation {
+  lat: number;
+  long: number;
+  name?: string;
+  city?: string;
+}
 
 // Custom marker icons
 
@@ -39,18 +31,18 @@ const locationIcon = new L.Icon({
   shadowSize: [41, 41],
 })
 
-export default function Map({ camps = [] }) {
-  const { location, isLoading, isError, error } = useGeolocation();
+export default function Map({ camps = [] }: { camps: CampLocation[] }) {
+  const { location, isLoading, error } = useGeolocation();
   
  
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center bg-muted">
-        <div className="text-lg">Loading map...</div>
-      </div>
-    )
-  }
+if (isLoading) {
+  return (
+    <div className="flex h-full items-center justify-center bg-muted">
+      Loading...
+    </div>
+  )
+}
 
   if (error) {
     return (
@@ -64,8 +56,9 @@ export default function Map({ camps = [] }) {
 
   return (
     <div className="h-full w-full rounded-lg overflow-hidden">
+      {location!==null }
       <MapContainer
-        center={[location?.latitude, location?.longitude]}
+        center={[location?.latitude ?? 20.5937, location?.longitude ?? 78.9629]}
         zoom={12.9}
         maxZoom={24}
         minZoom={4}
@@ -78,7 +71,7 @@ export default function Map({ camps = [] }) {
         />
 
         {/* User location marker */}
-        <Marker position={[location?.latitude, location?.longitude]} icon={userIcon}>
+        <Marker position={[location?.latitude ?? 20.5937, location?.longitude ?? 78.9629]} icon={userIcon}>
           <Popup>
             <div className="font-semibold">Your Location</div>
           </Popup>
@@ -87,8 +80,8 @@ export default function Map({ camps = [] }) {
         {/* Other location markers */}
         {camps.map((location, index) => (
           <Marker
-            key={`${location?.lat}-${location.location?.longitude}-${index}`}
-            position={[location?.lat, location?.long]}
+            key={`${location?.lat}-${location?.long}-${index}`}
+            position={[location?.lat ?? 20.5937, location?.long ?? 78.9629]}
             icon={locationIcon}
           >
             <Popup>

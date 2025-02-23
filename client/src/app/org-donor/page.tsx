@@ -49,8 +49,7 @@ export default function OrganDonation() {
     abi,
     address: contract_address,
     functionName: "getDonor",
-    args: [donorAddress],
-    enabled: !!donorAddress,
+    args: donorAddress ? [donorAddress] : undefined,
   })
 
   const handleRegister = async (e: React.FormEvent) => {
