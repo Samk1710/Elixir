@@ -2,8 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
+
 import { Switch } from "@/components/ui/switch"
 import { MapPin } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -14,29 +13,29 @@ import calculateDistance from "@/lib/calculateDistance"
 const Map = dynamic(() => import("@/components/utils/map"), { ssr: false })
 
 export default function CampsPage() {
-  interface BloodType {
-    O_POS: "O_POS",
-    O_NEG: "O_NEG",
-    A_POS: "A_POS",
-    A_NEG: "A_NEG",
-    B_POS: "B_POS",
-    B_NEG: "B_NEG",
-    AB_POS: "AB_POS",
-    AB_NEG: "AB_NEG",
-  }
+  // interface BloodType {
+  //   O_POS: "O_POS",
+  //   O_NEG: "O_NEG",
+  //   A_POS: "A_POS",
+  //   A_NEG: "A_NEG",
+  //   B_POS: "B_POS",
+  //   B_NEG: "B_NEG",
+  //   AB_POS: "AB_POS",
+  //   AB_NEG: "AB_NEG",
+  // }
 
-  interface Camp {
-    id: number;
-    name: string;
-    organizer: string;
-    city: string;
-    owner: string;
-  }
+  // interface Camp {
+  //   id: number;
+  //   name: string;
+  //   organizer: string;
+  //   city: string;
+  //   owner: string;
+  // }
 
  
 
   // Updated contract read hook
-  const { data: camps, isError, isLoading, status } = useReadContract({
+  const { data: camps, isError, isLoading } = useReadContract({
     address: contract_address,
     abi,
     functionName: 'getAllCamps',
