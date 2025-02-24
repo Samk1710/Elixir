@@ -2,7 +2,7 @@ import { streamText } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import ai_prompt from './prompt';
 export async function POST(req: Request) {
-  const google = createGoogleGenerativeAI({apiKey:process.env.GOOGLE_GENERATIVE_AI_API_KEY});
+  const google = createGoogleGenerativeAI({apiKey:'AIzaSyAVQpop5MJZpJg2x3DhEfWs4nCFmOQ-Op0'});
   const { messages } = await req.json();
   
   const result = streamText({
